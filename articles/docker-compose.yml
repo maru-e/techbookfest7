@@ -1,0 +1,8 @@
+version: '3'
+services:
+  review:
+    image: vvakame/review:3.2
+    volumes:
+      - .:/techbookfest7
+    build: .
+    working_dir: /techbookfest7
