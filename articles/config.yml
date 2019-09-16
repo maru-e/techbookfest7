@@ -56,7 +56,7 @@ edt: ["maki"]
 # a-oth, oth: その他
 # a-pht, pht: 撮影責任者
 # a-pbl, pbl: 出版社（発行所）
-pbl: ひよこ出版部
+pbl: ひよこ開発室出版部
 # a-prt, prt: 印刷所
 # prt: TechBooster
 # a-red, red: 項目の枠組起草者
@@ -75,7 +75,7 @@ date: 2019-9-22
 history: [["2019-9-22 技術書典7版 v1.0.0"]]
 # 権利表記(配列で複数指定可)
 # rights: (C) 2016 Re:VIEW Developers
-rights: (C) 2019 ひよこ出版部
+rights: (C) 2019 ひよこ開発室出版部
 # description: 説明
 # subject: 短い説明用タグ(配列で複数指定可)
 # type: 書籍のカテゴリーなど(配列で複数指定可)

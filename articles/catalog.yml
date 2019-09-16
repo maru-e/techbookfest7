@@ -6,8 +6,8 @@ CHAPS:
   - 02_chapter.re
   - 03_chapter.re
   - 04_chapter.re
-
-APPENDIX:
-
-POSTDEF:
-  - contributors.re
+  - 05_chapter.re
+  - 06_chapter.re
+  - 07_chapter.re
+  - 08_chapter.re
+  - 09_chapter.re

@@ -1,225 +1,135 @@
+= EC2インスタンスを作成しよう
 
+== EC2インスタンスを作成する
 
-== Publicサブネットに踏み台サーバーを作成する
+EC2とはElastic Compute Cloud の略で、アプリケーションを実行するために必要なコンピューターのようなものです。
+EC2で作成したコンピューターのことをインスタンスと呼びます。
 
-//image[160_Management_Console][EC2の作成][scale=0.8]{
+パブリックサブネットにEC2インスタンスを作成しましょう。
+
+//image[160_EC2][EC2を作成する][scale=0.8]{
 //}
 
-//image[161_EC2_Management_Console][EC2の作成][scale=0.8]{
+AWS マネジメントコンソールのトップ画面で、「EC2」と検索します。
+
+//image[160_Management_Console][EC2を検索][scale=0.9]{
 //}
 
-//image[162_EC2_Management_Console][EC2の作成][scale=0.8]{
+EC2ダッシュボードで、「インスタンスの作成」をクリックします。
+
+//image[161_EC2_Management_Console][「インスタンスの作成」をクリック][scale=0.9]{
 //}
 
-//image[163_EC2_Management_Console][EC2の作成][scale=0.8]{
+マシンイメージは　無料利用枠が対象のAmazon Linux 2を選択します。
+
+//image[162_EC2_Management_Console][Amazon Linux 2を選択][scale=0.9]{
 //}
 
-//image[164_EC2_Management_Console][EC2の作成][scale=0.8]{
+インスタンスタイプも、デフォルトで選択されている無料利用枠の対象（t2.micro）を選択したまま「次の手順」をクリックします。
+インスタンスタイプとは、インスタンスのスペックを決めるもので、スペックがよければよいほど利用料が高くなります。
+
+//image[163_EC2_Management_Console][t2.microを選択][scale=0.9]{
 //}
 
-//image[165_EC2_Management_Console][EC2の作成][scale=0.8]{
+インスタンスの詳細設定では、ネットワークに先ほど作成したVPCを選択し、サブネットには「public-subnet01」を選択、
+自動割り当てパブリックIP@<fn>{public IP}を「有効」にします。
+
+//footnote[public IP][このパブリックIPはサーバーを再起動すると変わります。普通はサーバーを再起動しても変わらないIPアドレス（EIP）を割り当てますが、今回は省略します。]
+
+//image[164_EC2_Management_Console][インスタンスの詳細設定][scale=0.9]{
 //}
 
-//image[166_EC2_Management_Console][EC2の作成][scale=0.8]{
+その他の設定はデフォルトのまま「次の手順」をクリックします。
+
+//image[165_EC2_Management_Console][「次の手順」をクリック][scale=0.9]{
 //}
 
-//image[167_EC2_Management_Console][EC2の作成][scale=0.8]{
+ストレージはデフォルトの設定のままで「次の手順」をクリックします。
+
+//image[166_EC2_Management_Console][「次の手順」をクリック][scale=0.9]{
 //}
 
-//image[168_EC2_Management_Console][EC2の作成][scale=0.8]{
+次に、タグの作成です。
+インスタンスをたくさん作成した時に、どれが何のインスタンスか分からなくならないように使います。
+キーに「Name」値に「ap」と入力して「次の手順」をクリックします。
+
+
+//image[167_EC2_Management_Console][「次の手順」をクリック][scale=0.9]{
 //}
 
-//image[169_EC2_Management_Console][EC2の作成][scale=0.8]{
+=== プロトコルとは？
+
+次のセキュリティグループの設定では、インスタンスに対してどんな通信のアクセスを許可するか設定できます。
+セキュリティグループの設定をする前に、少しプロトコルについて説明します。プロトコルとは、コンピューター同士が通信するためのルールです。
+
+たとえばHTTPはブラウザでウェブページを表示したりするのに使うプロトコルです。SSHはコマンドでサーバーに接続するためのプロトコルです。
+
+さらに、プロトコルは次の4層にわかれています。HTTPやSSHはアプリケーション層のプロトコルで、トランスポート層はTCPというプロトコルを使用しています。
+
+ * アプリケーション層　（HTTP、SSH）
+ * トランスポート層 （TCP）
+ * インターネット層 （IP）
+ * ネットワークインターフェイス層（Ethernet）
+
+=== ポート番号とは？
+
+IPアドレスを建物の住所にたとえましたが、ポート番号は部屋の番号だと思ってください。プロトコルごとに使用するポート番号が異なります。
+
+また、ポートは0から65535までありますが、その中でも0~1023までを「well-known port」と呼び、あるプロトコルとポートの組み合わせで予約されています。AWS マネジメントコンソールのセキュリティグループの設定で「タイプ」をHTTPにするとポートが自動で80になりますし、HTTPSにすると443になりますね。これは、使うポートが決まっているプロトコルだからAWSが自動で設定してくれているのです。
+
+=== セキュリティグループの設定
+
+では、セキュリティグループの設定に戻りましょう。
+
+セキュリティグループ名と説明は「ap」と変更します。
+
+デフォルトでは、どこからでもSSHで接続できるような設定になっています。（SSH接続については後ほど説明します。）
+これでは不正にサーバーにアクセスされてしまう可能性があるので、自分のPCからのみアクセスできるようにしましょう。
+
+ソースを自分のPCが使用しているグローバルIPアドレス/32@<fn>{/32}に修正します。
+//footnote[/32][CIDR表記で１つのIPアドレスのみを表す場合に/32と表します。]
+
+//image[170_EC2_Management_Console][セキュリティグループの設定][scale=0.9]{
 //}
 
-//image[170_EC2_Management_Console][EC2の作成][scale=0.8]{
-//}
+あれ、私グローバルIPアドレスなんて使ってないけど・・とおもいましたか？
+無意識でもインターネットに接続しているのなら、グローバルIPアドレスを使用しているのです。
+自宅や会社のwifiがグローバルIPアドレスを持っていて、そのグローバルIPアドレスを使ってインターネットに接続しているはずです。
 
-//image[171_cman][EC2の作成][scale=0.8]{
-//}
+自分のPCが使用しているグローバルIPアドレスはこちらのサイトにアクセスすれば教えてくれます。
 
-グローバルIPアドレスの確認方法
 https://www.cman.jp/network/support/go_access.cgi
 
-//image[172_EC2_Management_Console][EC2の作成][scale=0.8]{
+//image[171_cman][グローバルIPアドレスの確認][scale=0.9]{
 //}
 
-//image[173_EC2_Management_Console][EC2の作成][scale=0.8]{
+ソースを修正できたら、「確認と作成」をクリックします。
+
+なお、家のwifiやカフェのwifiなどはグローバルアドレスが固定でなく、時間がたつと変わってしまう場合があります。
+もしEC2インスタンスに繋がらなくなったり、作成したHPにアクセスできなくなったら
+グローバルIPアドレスが変わっていないか確認しましょう。
+変わっていたら、セキュリティグループの修正でIPアドレスを修正しましょう。
+
+インスタンスの作成内容を確認し、「起動」をクリックします。
+
+//image[173_EC2_Management_Console][EC2の起動][scale=0.9]{
 //}
 
-//image[174_EC2_Management_Console][EC2の作成][scale=0.8]{
+キーペア作成しましょう。キーペアとは、EC2インスタンスに接続するための鍵です。
+
+キーペアについては、後ほど説明します。
+
+「新しいキーペアの作成」を選択し、キーペア名に「ap」と入力し、「キーペアのダウンロード」をクリックします。
+
+//image[188_EC2_Management_Console][キーペアのダウンロード][scale=0.5]{
 //}
 
-//image[175_EC2_Management_Console][EC2の作成][scale=0.8]{
+ap.pemファイルがダウンロードできたら、「インスタンスの作成」をクリックします。
+
+//image[189_EC2_Management_Console][インスタンスの作成][scale=0.5]{
 //}
 
-//image[176_EC2_Management_Console][EC2の作成][scale=0.8]{
+EC2インスタンスの作成が開始されました。
+
+//image[178_EC2_Management_Console][EC2の作成開始][scale=0.9]{
 //}
-
-//image[177_EC2_Management_Console][EC2の作成][scale=0.8]{
-//}
-
-//image[178_EC2_Management_Console][EC2の作成][scale=0.8]{
-//}
-
-
-== Protectedサブネットにアプリ用サーバーを作成する
-
-//image[180_EC2_Management_Console][EC2の作成][scale=0.8]{
-//}
-
-//image[181_EC2_Management_Console][EC2の作成][scale=0.8]{
-//}
-
-//image[182_EC2_Management_Console][EC2の作成][scale=0.8]{
-//}
-
-//image[183_EC2_Management_Console][EC2の作成][scale=0.8]{
-//}
-
-//image[184_EC2_Management_Console][EC2の作成][scale=0.8]{
-//}
-
-//image[185_EC2_Management_Console][EC2の作成][scale=0.8]{
-//}
-
-//image[186_EC2_Management_Console][EC2の作成][scale=0.8]{
-//}
-
-//image[187_EC2_Management_Console][EC2の作成][scale=0.8]{
-//}
-
-//image[188_EC2_Management_Console][EC2の作成][scale=0.8]{
-//}
-
-//image[189_EC2_Management_Console][EC2の作成][scale=0.8]{
-//}
-
-//image[190_EC2_Management_Console][EC2の作成][scale=0.8]{
-//}
-
-//image[191_EC2_Management_Console][EC2の作成][scale=0.8]{
-//}
-
-=== SSHでPublic EC2に接続する
-
-踏み台サーバーのパブリックIPを確認しておく。
-//image[191_EC2_Management_Console][パブリックIPの確認][scale=0.8]{
-//}
-
-== MACの場合
-
-Finderを表示し、上にあるツールバーの「移動」＞「フォルダへ移動」＞「~/.ssh/」を入力。
-このフォルダに最初にダウンロードしたキーペアを移動する。（最初に作成したパブリックサブネットのEC2）
-
-ターミナルを開き、次のコマンドを実行する。
-.sshフォルダに「config」というファイル名のファイルを作成して開く。
-
-//list[ssh_config][configファイル]{
-$ cd ~/.ssh
-$ vi config
-//}
-
-キーボードで「i」を押して編集モードに切り替え、次のソースをコピペする。
-<>の中は先ほど確認した踏み台サーバーのIPアドレスに修正する。
-
-//list[ssh_config][configファイル]{
-# start infra on aws
-
-# start infra on aws
-
-  Host bastion
-  HostName 52.196.89.55
-  User ec2-user
-  IdentityFile ~/.ssh/bastion.pem
-  Port 22
-  ServerAliveInterval 300
-  TCPKeepAlive yes
-//}
-
-キーボードで「esc」を押して、コマンドモードに切り替える。
-その後、次のコマンドでファイルを上書き保存する。
-
-//list[ssh_config][configファイル]{
-:wq
-//}
-
-次のコマンドで、踏み台サーバーに接続する。
-
-//list[ssh_config][configファイル]{
-ssh public01
-//}
-
-
-//list[ssh_config][configファイル]{
-The authenticity of host '52.196.89.55 (52.196.89.55)' can't be established.
-ECDSA key fingerprint is SHA256:+xXt86U/2APwsGsb7Ff84mbV5aAc6q4JEhKuB5/xZqg.
-Are you sure you want to continue connecting (yes/no)?
-//}
-
-yesを入力して「Enter」を押す。
-
-
-怒られた。
-キーペアのファイルのパーミッションが緩すぎるとのこと。
-
-//list[ssh_config][configファイル]{
-Permissions 0644 for '/Users/maki/.ssh/bastion.pem' are too open.
-It is required that your private key files are NOT accessible by others.
-This private key will be ignored.
-Load key "/Users/maki/.ssh/bastion.pem": bad permissions
-ec2-user@52.196.89.55: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).
-chmod 600 bastion.pem
-//}
-
-パーミッションを600にする。
-
-//list[ssh_config][configファイル]{
-$ chmod 600 bastion.pem
-//}
-
-パーミッションが600になっていることを確認する。
-（読み方説明）
-
-//list[ssh_config][configファイル]{
-$ ls -l  bastion.pem
--rw-------@ 1 maki  staff  1692  9  1 18:26 bastion.pem
-//}
-
-ログインできた。
-
-//list[ssh_config][configファイル]{
-$ ssh public01
-
-       __|  __|_  )
-       _|  (     /   Amazon Linux 2 AMI
-      ___|\___|___|
-
-https://aws.amazon.com/amazon-linux-2/
-4 package(s) needed for security, out of 12 available
-Run "sudo yum update" to apply all updates.
-//}
-
-
-== Windowsの場合
-#@# 書くつもり
-
-==
-
-== 踏み台サーバーにapサーバーへ接続するための鍵を配置する
-
-
-=== 踏み台サーバーからapサーバーへの接続
-
-== pythonのapインストール
-
-
-= ドメインでアクセスできるようにしよう
-
-= HTTPSで接続するようにしよう
-
-== ALBの作成
-== 証明書の作成
-
-= 複数人でSSH接続したいとき
-== EC2で踏み台サーバーを作成する
